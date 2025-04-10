@@ -170,8 +170,8 @@ def generate_daily_workout():
         ]
         
         message += f"\n\n{random.choice(motivational_closers)}"
-        print(message)
-        # print_notification(message)
+        # for dev - print(message)
+        print_notification(message)
         return message
     except Exception as e:
         print(f"Error generating workout: {e}")
