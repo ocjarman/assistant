@@ -3,46 +3,49 @@ import random
 
 from utils.print import print_notification
 from utils.oura import get_oura_readiness_activity
+
 def generate_cardio_workout(day_of_week, intensity="moderate"):
     """Generate a cardio component for the daily workout based on intensity level"""
+    import random
+    import math
     
     # Different cardio types based on days of the week and intensity
     cardio_options = {
         "high": {
-            0: ["Tempo Run", "Fartlek Training"],  # Monday
-            1: ["Interval Run", "Hill Repeats"],  # Tuesday
-            2: ["Speed Intervals", "Tempo Run"],  # Wednesday
-            3: ["Fartlek Training", "Pyramid Intervals"],  # Thursday
-            4: ["Tempo Run", "Speed Play"],  # Friday
-            5: ["Threshold Training", "Long Run"],  # Saturday
-            6: ["Easy Run", "Recovery Intervals"]   # Sunday
+            0: ["Tempo Run", "Fartlek Training", "Peloton HIIT Ride"],  # Monday
+            1: ["Interval Run", "Hill Repeats", "Peloton Tabata Ride"],  # Tuesday
+            2: ["Speed Intervals", "Tempo Run", "Peloton Power Zone Max Ride"],  # Wednesday
+            3: ["Fartlek Training", "Pyramid Intervals", "Peloton HIIT & Hills Ride"],  # Thursday
+            4: ["Tempo Run", "Speed Play", "Peloton Climb Ride"],  # Friday
+            5: ["Threshold Training", "Long Run", "Peloton Pro Cyclist Ride"],  # Saturday
+            6: ["Easy Run", "Recovery Intervals", "Peloton Endurance Ride"]   # Sunday
         },
         "moderate": {
-            0: ["Tempo Run", "Fartlek Training"],  # Monday
-            1: ["Steady State Jog", "Light Recovery Run"],  # Tuesday
-            2: ["Hill Repeats", "Speed Intervals"],  # Wednesday
-            3: ["Easy Run", "Steady State Cardio"],  # Thursday
-            4: ["Tempo Run", "Aerobic Base Building"],  # Friday
-            5: ["Long Slow Distance", "Recovery Run"],  # Saturday
-            6: ["Active Recovery", "Mobility Run"]   # Sunday
+            0: ["Tempo Run", "Fartlek Training", "Peloton Power Zone Ride"],  # Monday
+            1: ["Steady State Jog", "Light Recovery Run", "Peloton Interval Ride"],  # Tuesday
+            2: ["Hill Repeats", "Speed Intervals", "Peloton HIIT Ride"],  # Wednesday
+            3: ["Easy Run", "Steady State Cardio", "Peloton Music Ride"],  # Thursday
+            4: ["Tempo Run", "Aerobic Base Building", "Peloton Groove Ride"],  # Friday
+            5: ["Long Slow Distance", "Recovery Run", "Peloton Power Zone Endurance"],  # Saturday
+            6: ["Active Recovery", "Mobility Run", "Peloton Low Impact Ride"]   # Sunday
         },
         "low": {
-            0: ["Easy Jog", "Light Cardio"],  # Monday
-            1: ["Steady State Walk/Jog", "Recovery Jog"],  # Tuesday
-            2: ["Easy Intervals", "Light Hill Work"],  # Wednesday
-            3: ["Recovery Run", "Easy Cardio"],  # Thursday
-            4: ["Light Fartlek", "Easy Tempo"],  # Friday
-            5: ["Casual Distance", "Easy Jog"],  # Saturday
-            6: ["Active Recovery", "Walking"]   # Sunday
+            0: ["Easy Jog", "Light Cardio", "Peloton Low Impact Ride"],  # Monday
+            1: ["Steady State Walk/Jog", "Recovery Jog", "Peloton Recovery Ride"],  # Tuesday
+            2: ["Easy Intervals", "Light Hill Work", "Peloton Beginner Ride"],  # Wednesday
+            3: ["Recovery Run", "Easy Cardio", "Peloton Low Impact Ride"],  # Thursday
+            4: ["Light Fartlek", "Easy Tempo", "Peloton Scenic Ride"],  # Friday
+            5: ["Casual Distance", "Easy Jog", "Peloton Recovery Ride"],  # Saturday
+            6: ["Active Recovery", "Walking", "Peloton Cool Down Ride"]   # Sunday
         },
         "recovery": {
-            0: ["Walking", "Light Mobility"],  # Monday
-            1: ["Recovery Walk", "Gentle Movement"],  # Tuesday
-            2: ["Easy Walking", "Mobility Circuits"],  # Wednesday
-            3: ["Gentle Movement", "Recovery Walk"],  # Thursday
-            4: ["Walking", "Mobility Flow"],  # Friday
-            5: ["Light Walk", "Stretching Circuit"],  # Saturday
-            6: ["Recovery", "Gentle Mobility"]   # Sunday
+            0: ["Walking", "Light Mobility", "Peloton Recovery Ride"],  # Monday
+            1: ["Recovery Walk", "Gentle Movement", "Peloton Cool Down Ride"],  # Tuesday
+            2: ["Easy Walking", "Mobility Circuits", "Peloton Beginner Ride"],  # Wednesday
+            3: ["Gentle Movement", "Recovery Walk", "Peloton Low Impact Ride"],  # Thursday
+            4: ["Walking", "Mobility Flow", "Peloton Recovery Ride"],  # Friday
+            5: ["Light Walk", "Stretching Circuit", "Peloton Scenic Ride"],  # Saturday
+            6: ["Recovery", "Gentle Mobility", "Peloton Cool Down Ride"]   # Sunday
         }
     }
     
@@ -53,17 +56,40 @@ def generate_cardio_workout(day_of_week, intensity="moderate"):
     cardio_type = random.choice(intensity_options[day_of_week])
     
     # Generate duration based on intensity
+    # Determine if this is a Peloton workout
+    is_peloton = "Peloton" in cardio_type
+    
     if intensity == "high":
-        duration = random.randint(25, 30)
+        duration = random.randint(30, 45) if is_peloton else random.randint(25, 30)
     elif intensity == "moderate":
-        duration = random.randint(20, 25)
+        duration = random.randint(20, 30) if is_peloton else random.randint(20, 25)
     elif intensity == "low":
-        duration = random.randint(15, 20)
+        duration = random.randint(20, 30) if is_peloton else random.randint(15, 20)
     else:  # recovery
-        duration = random.randint(10, 15)
+        duration = random.randint(20, 30) if is_peloton else random.randint(10, 15)
     
     # Generate specific instructions based on the cardio type and intensity
-    if "Tempo" in cardio_type and intensity != "recovery":
+    if "Peloton" in cardio_type:
+        # Round to nearest 5 for Peloton durations (classes are 20, 30, 45 min)
+        peloton_duration = round(duration / 5) * 5
+        # Ensure duration is between 20 and 45 minutes
+        if peloton_duration < 20:
+            peloton_duration = 20
+        elif peloton_duration > 45:
+            peloton_duration = 45
+        
+        # Determine class type description based on intensity
+        if intensity == "high":
+            description = f"challenging {peloton_duration}-minute class that will push your limits"
+        elif intensity == "moderate":
+            description = f"moderate {peloton_duration}-minute class to build endurance and strength"
+        elif intensity == "low":
+            description = f"lighter {peloton_duration}-minute class focusing on form and technique"
+        else:  # recovery
+            description = f"gentle {peloton_duration}-minute class to promote active recovery"
+            
+        return f"{cardio_type}: {peloton_duration} minutes\n• A {description}"
+    elif "Tempo" in cardio_type and intensity != "recovery":
         return f"{cardio_type}: {duration} minutes\n• 5 min warmup at easy pace\n• {duration-10} min at {'challenging' if intensity == 'high' else 'moderate'} but sustainable pace\n• 5 min cooldown at easy pace"
     elif ("Interval" in cardio_type or "Repeats" in cardio_type) and intensity != "recovery":
         # Adjust intervals based on intensity
@@ -86,7 +112,6 @@ def generate_cardio_workout(day_of_week, intensity="moderate"):
         return f"{cardio_type}: {duration} minutes at a gentle, comfortable pace focusing on recovery"
     else:
         return f"{cardio_type}: {duration} minutes at a {'brisk' if intensity == 'high' else 'comfortable, conversational' if intensity == 'moderate' else 'relaxed'} pace"
-
 
 def generate_daily_workout():
     try:
@@ -145,8 +170,8 @@ def generate_daily_workout():
         ]
         
         message += f"\n\n{random.choice(motivational_closers)}"
-        
-        print_notification(message)
+        print(message)
+        # print_notification(message)
         return message
     except Exception as e:
         print(f"Error generating workout: {e}")
