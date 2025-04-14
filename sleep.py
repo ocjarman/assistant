@@ -5,7 +5,7 @@ from utils.sleepUtils import get_sleep_data, fetch_sleep_data
 from utils.quotes import get_affirmation_and_quote
 from utils.quotes import morning_reminders
 from utils.workouts import generate_daily_workout
-from utils.oura import get_oura_readiness_activity
+from utils.oura import get_oura_readiness
 
 # Schedule notifications
 # Running at 7:00 AM to get the previous night's sleep data

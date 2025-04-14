@@ -2,7 +2,7 @@ import datetime
 import random
 
 from utils.print import print_notification
-from utils.oura import get_oura_readiness_activity
+from utils.oura import get_oura_readiness
 from utils.sleepUtils import fetch_sleep_data
 
 def generate_cardio_workout(day_of_week, intensity="moderate"):
@@ -81,13 +81,13 @@ def generate_cardio_workout(day_of_week, intensity="moderate"):
         
         # Determine class type description based on intensity
         if intensity == "high":
-            description = f"challenging {peloton_duration}-minute class that will push your limits"
+            description = f"challenging {peloton_duration} minute class that will push your limits"
         elif intensity == "moderate":
-            description = f"moderate {peloton_duration}-minute class to build endurance and strength"
+            description = f"moderate {peloton_duration} minute class to build endurance and strength"
         elif intensity == "low":
-            description = f"lighter {peloton_duration}-minute class focusing on form and technique"
+            description = f"lighter {peloton_duration} minute class focusing on form and technique"
         else:  # recovery
-            description = f"gentle {peloton_duration}-minute class to promote active recovery"
+            description = f"gentle {peloton_duration} minute class to promote active recovery"
             
         return f"{cardio_type}: {peloton_duration} minutes\n• A {description}"
     elif "Tempo" in cardio_type and intensity != "recovery":
@@ -120,8 +120,8 @@ def generate_daily_workout():
         day_of_week = datetime.datetime.now().weekday()
         day_name = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][day_of_week]
         
-        # Get readiness and activity scores from Oura Ring
-        readiness_score, activity_score = get_oura_readiness_activity()
+        # Get readiness score from Oura Ring
+        readiness_score = get_oura_readiness()
         
         # Get sleep data
         sleep_data = fetch_sleep_data()
@@ -189,19 +189,14 @@ def generate_daily_workout():
             intensity_description += f"{message}\n"
         intensity_description += "\n"
         
-        # Adjust workout based on recent activity score
-        if activity_score > 85 and final_intensity != "recovery":
-            final_intensity = downgrade_intensity(final_intensity)
-            intensity_description += "Intensity has been adjusted down because your activity was high yesterday."
-        
         # Generate today's workout based on the day of week and intensity
         cardio_component = generate_cardio_workout(day_of_week, final_intensity)
         strength_component = generate_strength_workout(day_of_week, final_intensity)
         
         message = f"💪 YOUR DAILY WORKOUT FOR {day_name.upper()}\n\n"
-        message += f"🧘‍♀️OURA DATA: Readiness {readiness_score} | Activity {activity_score}\n"
+        message += f"🧘‍♀️OURA DATA: Readiness {readiness_score}\n"
         if sleep_data is not None:
-            message += f"🌙 SLEEP DATA: {total_sleep:.1f}h | Score {sleep_score:.1f} | Latency {sleep_latency:.0f}min\n\n"
+            message += f"🌙 SLEEP DATA: {total_sleep:.1f}h | Score {sleep_score:.1f} | Latency {sleep_latency:.0f}min \n\n"
         message += f"{intensity_description}\n"
         message += f"FOCUS TODAY: {strength_component['focus']}\n\n"
         message += "🏃‍♀️CARDIO PORTION\n"
