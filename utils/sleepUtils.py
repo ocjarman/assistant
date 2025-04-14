@@ -9,13 +9,14 @@ def get_sleep_data():
     try:
         oura_api_token = "3HQMWLUXSEHCZYEDARFGLIIMX3U5DCPM"
         
-        # Get today's date and yesterday's date to ensure we capture the most recent night's sleep
-        today = datetime.datetime.now().strftime('%Y-%m-%d')
-        yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+        # Get today's date and calculate the date range for last night's sleep
+        today = datetime.datetime.now().date()
+        start_date = today.strftime('%Y-%m-%d')
+        end_date = (today + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
         
-        # Use the sleep sessions endpoint with yesterday and today to get the most recent sleep
+        # Use the sleep sessions endpoint to get last night's sleep data
         url = "https://api.ouraring.com/v2/usercollection/sleep"
-        params = {"start_date": yesterday, "end_date": today}
+        params = {"start_date": start_date, "end_date": end_date}
         
         headers = {"Authorization": f"Bearer {oura_api_token}"}
         
@@ -46,9 +47,8 @@ def get_sleep_data():
         
         message = f"🌙 Olivia's Personalized Daily Motivation 🌙\n"
         
-        # Add sleep date
-        if 'day' in session:
-            message += f"📅 Date: {session['day']}\n\n"
+        # Add today's date
+        message += f"📅 Date: {today.strftime('%Y-%m-%d')}\n\n"
         
         # Function to format seconds to hours and minutes
         def format_time(seconds):

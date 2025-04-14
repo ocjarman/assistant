@@ -17,9 +17,9 @@ from utils.oura import get_oura_readiness_activity
 
 # Test functions immediately
 print("Testing sleep printer and workout generator functions...")
-# get_sleep_data()
+get_sleep_data()
 generate_daily_workout()
-# morning_reminders()
+morning_reminders()
 
 # print("Sleep-printer and workout generator system running. Press CTRL+C to exit.")
 
