@@ -5,7 +5,8 @@ import json
 from utils.print import print_notification, sanitize_for_texting
 from utils.quotes import get_affirmation_and_quote
 
-def get_sleep_data():
+def fetch_sleep_data():
+    """Fetch sleep data from Oura API without printing any messages"""
     try:
         oura_api_token = "3HQMWLUXSEHCZYEDARFGLIIMX3U5DCPM"
         
@@ -14,66 +15,87 @@ def get_sleep_data():
         start_date = today.strftime('%Y-%m-%d')
         end_date = (today + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
         
-        # Use the sleep sessions endpoint to get last night's sleep data
-        url = "https://api.ouraring.com/v2/usercollection/sleep"
+        # First, get the detailed sleep session data
+        sleep_url = "https://api.ouraring.com/v2/usercollection/sleep"
         params = {"start_date": start_date, "end_date": end_date}
-        
         headers = {"Authorization": f"Bearer {oura_api_token}"}
         
-        response = requests.get(url, headers=headers, params=params)
+        sleep_response = requests.get(sleep_url, headers=headers, params=params)
         
         # Check if the request was successful
-        if response.status_code != 200:
-            print(f"ERROR: API returned status code {response.status_code}")
-            print_notification(f"Error fetching sleep data. Status code: {response.status_code}")
-            return
+        if sleep_response.status_code != 200:
+            print(f"ERROR: Sleep API returned status code {sleep_response.status_code}")
+            return None
         
-        data = json.loads(response.text)
+        sleep_data = json.loads(sleep_response.text)
         
-        # Check if we have data
-        if 'data' not in data or len(data['data']) == 0:
-            print("No sleep data found in response")
-            print_notification("No sleep data available.")
-            return
+        # Check if we have sleep session data
+        if 'data' not in sleep_data or len(sleep_data['data']) == 0:
+            print("No sleep session data found in response")
+            return None
         
-        # If we have multiple sleep sessions, sort them by bedtime_start to get the most recent one
-        if len(data['data']) > 1:
-            sorted_sessions = sorted(data['data'], 
+        # Get the most recent sleep session
+        if len(sleep_data['data']) > 1:
+            sorted_sessions = sorted(sleep_data['data'], 
                                     key=lambda x: x.get('bedtime_start', ''), 
                                     reverse=True)
             session = sorted_sessions[0]
         else:
-            session = data['data'][0]
+            session = sleep_data['data'][0]
         
+        # Now, get the overall sleep score from the daily_sleep endpoint
+        daily_sleep_url = "https://api.ouraring.com/v2/usercollection/daily_sleep"
+        daily_sleep_response = requests.get(daily_sleep_url, headers=headers, params=params)
+        
+        if daily_sleep_response.status_code != 200:
+            print(f"ERROR: Daily Sleep API returned status code {daily_sleep_response.status_code}")
+            # Continue with sleep session data even if daily sleep score fails
+            sleep_score = 0
+        else:
+            daily_sleep_data = json.loads(daily_sleep_response.text)
+            if 'data' in daily_sleep_data and len(daily_sleep_data['data']) > 0:
+                sleep_score = daily_sleep_data['data'][0].get('score', 0)
+            else:
+                sleep_score = 0
+        
+        # Create a dictionary with the sleep data we need
+        return {
+            'total_sleep_duration': session.get('total_sleep_duration', 0),
+            'score': sleep_score,
+            'latency': session.get('latency', 0)
+        }
+        
+    except Exception as e:
+        print(f"Error getting sleep data: {e}")
+        return None
+
+def get_sleep_data():
+    """Get sleep data and print a notification message"""
+    try:
+        sleep_data = fetch_sleep_data()
+        
+        if sleep_data is None:
+            print_notification("Could not retrieve sleep data.")
+            return None
+        
+        # Create and print the notification message
         message = f"🌙 Olivia's Personalized Daily Motivation 🌙\n"
+        message += f"📅 Date: {datetime.datetime.now().strftime('%Y-%m-%d')}\n\n"
         
-        # Add today's date
-        message += f"📅 Date: {today.strftime('%Y-%m-%d')}\n\n"
+        if sleep_data['score']:
+            message += f"⭐ Sleep Score: {sleep_data['score']:.1f}\n"
         
-        # Function to format seconds to hours and minutes
-        def format_time(seconds):
-            hours = int(seconds // 3600)
-            minutes = int((seconds % 3600) // 60)
-            return f"{hours}h {minutes}m"
-        
-        # Add sleep score if available
-        if 'score' in session:
-            message += f"⭐ Sleep Score: {session['score']}\n"
-        
-        # Add sleep latency (time to fall asleep)
-        if 'latency' in session:
-            # Latency is typically in seconds
-            latency_minutes = int(session['latency'] // 60)
+        if sleep_data['latency']:
+            latency_minutes = int(sleep_data['latency'] // 60)
             message += f"⏱️ Time to Fall Asleep: {latency_minutes} minutes\n"
             
-        # Get total sleep duration
-        if 'total_sleep_duration' in session:
-            total_seconds = session['total_sleep_duration']
-            total_hours = total_seconds / 3600  # Convert seconds to hours
-            total_sleep = format_time(total_seconds)
-            message += f"💤 Total Sleep: {total_sleep}\n\n"
+        if sleep_data['total_sleep_duration']:
+            total_seconds = sleep_data['total_sleep_duration']
+            total_hours = total_seconds / 3600
+            hours = int(total_seconds // 3600)
+            minutes = int((total_seconds % 3600) // 60)
+            message += f"💤 Total Sleep: {hours}h {minutes}m\n\n"
             
-            # Create a personalized message based on sleep duration
             if total_hours >= 7.5:
                 prefix = "🎉 Great job getting enough sleep last night! Your body thanks you."
             elif total_hours >= 6:
@@ -83,11 +105,13 @@ def get_sleep_data():
             
             message += f"{prefix}\n\n"
             
-            # Add affirmation and quote
             affirmation, quote = get_affirmation_and_quote()
             message += f"{affirmation}\n\n{quote}"
-            
+        
         print_notification(message)
+        return sleep_data
+        
     except Exception as e:
-        print(f"Error getting sleep data: {e}")
-        print_notification(f"Could not retrieve sleep data. Error: {e}")
+        print(f"Error in get_sleep_data: {e}")
+        print_notification(f"Could not process sleep data. Error: {e}")
+        return None

@@ -3,6 +3,7 @@ import random
 
 from utils.print import print_notification
 from utils.oura import get_oura_readiness_activity
+from utils.sleepUtils import fetch_sleep_data
 
 def generate_cardio_workout(day_of_week, intensity="moderate"):
     """Generate a cardio component for the daily workout based on intensity level"""
@@ -122,38 +123,86 @@ def generate_daily_workout():
         # Get readiness and activity scores from Oura Ring
         readiness_score, activity_score = get_oura_readiness_activity()
         
-        # Determine workout intensity based on readiness score
-        # 100-85: High intensity
-        # 84-70: Moderate intensity
-        # 69-50: Low intensity
-        # Below 50: Recovery
-        if readiness_score >= 85:
-            intensity = "high"
-            intensity_description = "Your readiness score is excellent! This workout is designed for high intensity."
-        elif readiness_score >= 70:
-            intensity = "moderate"
-            intensity_description = "Your readiness score is good. This workout is designed for moderate intensity."
-        elif readiness_score >= 50:
-            intensity = "low"
-            intensity_description = "Your readiness score suggests you may need to take it easier today. This is a lower intensity workout."
+        # Get sleep data
+        sleep_data = fetch_sleep_data()
+        
+        # Initialize sleep metrics with default values
+        total_sleep = 0
+        sleep_score = 0
+        sleep_latency = 0
+        sleep_messages = []
+        
+        if sleep_data is not None:
+            total_sleep = sleep_data.get('total_sleep_duration', 0) / 3600  # Convert to hours
+            sleep_score = sleep_data.get('score', 0)
+            sleep_latency = sleep_data.get('latency', 0) / 60  # Convert to minutes
+            
+            # Adjust for sleep duration
+            if total_sleep < 6:
+                sleep_messages.append("Sleep duration was below 6 hours, so we're taking it easier today.")
+            elif total_sleep >= 7.5:
+                sleep_messages.append("Great sleep duration! We can push a bit harder today.")
+            
+            # Adjust for sleep quality
+            if sleep_score < 70:
+                sleep_messages.append("Sleep quality was below optimal, so we're being more conservative.")
+            elif sleep_score >= 85:
+                sleep_messages.append("Excellent sleep quality! We can challenge ourselves more.")
+            
+            # Adjust for sleep latency
+            if sleep_latency > 30:
+                sleep_messages.append("It took longer to fall asleep, so we're being more gentle.")
         else:
-            intensity = "recovery"
-            intensity_description = "Your readiness score indicates your body needs recovery. Today focuses on mobility and active recovery."
+            sleep_messages.append("No sleep data available. Using readiness score only for workout intensity.")
+        
+        # Determine base intensity based on readiness score
+        if readiness_score >= 85:
+            base_intensity = "high"
+        elif readiness_score >= 70:
+            base_intensity = "moderate"
+        elif readiness_score >= 50:
+            base_intensity = "low"
+        else:
+            base_intensity = "recovery"
+        
+        # Adjust intensity based on sleep metrics
+        final_intensity = base_intensity
+        
+        # Apply sleep-based adjustments if we have sleep data
+        if sleep_data is not None:
+            if total_sleep < 6 and final_intensity != "recovery":
+                final_intensity = downgrade_intensity(final_intensity)
+            elif total_sleep >= 7.5 and final_intensity != "high":
+                final_intensity = upgrade_intensity(final_intensity)
+            
+            if sleep_score < 70 and final_intensity != "recovery":
+                final_intensity = downgrade_intensity(final_intensity)
+            elif sleep_score >= 85 and final_intensity != "high":
+                final_intensity = upgrade_intensity(final_intensity)
+            
+            if sleep_latency > 30 and final_intensity != "recovery":
+                final_intensity = downgrade_intensity(final_intensity)
+        
+        # Create intensity description
+        intensity_description = f"Your readiness score is {readiness_score}.\n"
+        for message in sleep_messages:
+            intensity_description += f"{message}\n"
+        intensity_description += "\n"
         
         # Adjust workout based on recent activity score
-        # If high activity yesterday, reduce intensity regardless of readiness
-        if activity_score > 85 and intensity != "recovery":
-            intensity = downgrade_intensity(intensity)
-            intensity_description += " Intensity has been adjusted down because your activity was high yesterday."
+        if activity_score > 85 and final_intensity != "recovery":
+            final_intensity = downgrade_intensity(final_intensity)
+            intensity_description += "Intensity has been adjusted down because your activity was high yesterday."
         
         # Generate today's workout based on the day of week and intensity
-        cardio_component = generate_cardio_workout(day_of_week, intensity)
-        strength_component = generate_strength_workout(day_of_week, intensity)
+        cardio_component = generate_cardio_workout(day_of_week, final_intensity)
+        strength_component = generate_strength_workout(day_of_week, final_intensity)
         
-
         message = f"💪 YOUR DAILY WORKOUT FOR {day_name.upper()}\n\n"
-        message += f"🧘‍♀️OURA DATA: Readiness {readiness_score} | Activity {activity_score}\n\n"
-        message += f"{intensity_description}\n\n"
+        message += f"🧘‍♀️OURA DATA: Readiness {readiness_score} | Activity {activity_score}\n"
+        if sleep_data is not None:
+            message += f"🌙 SLEEP DATA: {total_sleep:.1f}h | Score {sleep_score:.1f} | Latency {sleep_latency:.0f}min\n\n"
+        message += f"{intensity_description}\n"
         message += f"FOCUS TODAY: {strength_component['focus']}\n\n"
         message += "🏃‍♀️CARDIO PORTION\n"
         message += f"{cardio_component.replace('-', ' to ').replace(':', ' ')}\n\n"
@@ -171,12 +220,11 @@ def generate_daily_workout():
         
         message += f"\n\n{random.choice(motivational_closers)}"
         print(message)
-        # print_notification(message)
         return message
     except Exception as e:
         print(f"Error generating workout: {e}")
         print_notification("Could not generate today's workout. Please try again later.")
-        
+
 def downgrade_intensity(current_intensity):
     """Downgrade workout intensity by one level"""
     intensity_levels = ["high", "moderate", "low", "recovery"]
@@ -189,6 +237,17 @@ def downgrade_intensity(current_intensity):
     # Otherwise downgrade one level
     return intensity_levels[current_index + 1]
 
+def upgrade_intensity(current_intensity):
+    """Upgrade workout intensity by one level"""
+    intensity_levels = ["recovery", "low", "moderate", "high"]
+    current_index = intensity_levels.index(current_intensity)
+    
+    # If already at high, keep it there
+    if current_index >= len(intensity_levels) - 1:
+        return intensity_levels[-1]
+    
+    # Otherwise upgrade one level
+    return intensity_levels[current_index + 1]
 
 def generate_strength_workout(day_of_week, intensity="moderate"):
     """Generate a strength/HIIT workout component based on the day of the week and intensity level"""
