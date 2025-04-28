@@ -18,8 +18,8 @@ def generate_cardio_workout(day_of_week, intensity="moderate"):
             2: ["Speed Intervals", "Tempo Run", "Peloton Power Zone Max Ride"],  # Wednesday
             3: ["Fartlek Training", "Pyramid Intervals", "Peloton HIIT & Hills Ride"],  # Thursday
             4: ["Tempo Run", "Speed Play", "Peloton Climb Ride"],  # Friday
-            5: ["Threshold Training", "Long Run", "Peloton Pro Cyclist Ride"],  # Saturday
-            6: ["Easy Run", "Recovery Intervals", "Peloton Endurance Ride"]   # Sunday
+            5: ["Long Run (4-6 miles)", "Long Run (4-6 miles)", "Long Run (4-6 miles)"],  # Saturday
+            6: ["Long Run (4-6 miles)", "Long Run (4-6 miles)", "Long Run (4-6 miles)"]   # Sunday
         },
         "moderate": {
             0: ["Tempo Run", "Fartlek Training", "Peloton Power Zone Ride"],  # Monday
@@ -27,8 +27,8 @@ def generate_cardio_workout(day_of_week, intensity="moderate"):
             2: ["Hill Repeats", "Speed Intervals", "Peloton HIIT Ride"],  # Wednesday
             3: ["Easy Run", "Steady State Cardio", "Peloton Music Ride"],  # Thursday
             4: ["Tempo Run", "Aerobic Base Building", "Peloton Groove Ride"],  # Friday
-            5: ["Long Slow Distance", "Recovery Run", "Peloton Power Zone Endurance"],  # Saturday
-            6: ["Active Recovery", "Mobility Run", "Peloton Low Impact Ride"]   # Sunday
+            5: ["Long Run (4-6 miles)", "Long Run (4-6 miles)", "Long Run (4-6 miles)"],  # Saturday
+            6: ["Long Run (4-6 miles)", "Long Run (4-6 miles)", "Long Run (4-6 miles)"]   # Sunday
         },
         "low": {
             0: ["Easy Jog", "Light Cardio", "Peloton Low Impact Ride"],  # Monday
@@ -36,8 +36,8 @@ def generate_cardio_workout(day_of_week, intensity="moderate"):
             2: ["Easy Intervals", "Light Hill Work", "Peloton Beginner Ride"],  # Wednesday
             3: ["Recovery Run", "Easy Cardio", "Peloton Low Impact Ride"],  # Thursday
             4: ["Light Fartlek", "Easy Tempo", "Peloton Scenic Ride"],  # Friday
-            5: ["Casual Distance", "Easy Jog", "Peloton Recovery Ride"],  # Saturday
-            6: ["Active Recovery", "Walking", "Peloton Cool Down Ride"]   # Sunday
+            5: ["Long Run (4-6 miles)", "Long Run (4-6 miles)", "Long Run (4-6 miles)"],  # Saturday
+            6: ["Long Run (4-6 miles)", "Long Run (4-6 miles)", "Long Run (4-6 miles)"]   # Sunday
         },
         "recovery": {
             0: ["Walking", "Light Mobility", "Peloton Recovery Ride"],  # Monday
@@ -45,8 +45,8 @@ def generate_cardio_workout(day_of_week, intensity="moderate"):
             2: ["Easy Walking", "Mobility Circuits", "Peloton Beginner Ride"],  # Wednesday
             3: ["Gentle Movement", "Recovery Walk", "Peloton Low Impact Ride"],  # Thursday
             4: ["Walking", "Mobility Flow", "Peloton Recovery Ride"],  # Friday
-            5: ["Light Walk", "Stretching Circuit", "Peloton Scenic Ride"],  # Saturday
-            6: ["Recovery", "Gentle Mobility", "Peloton Cool Down Ride"]   # Sunday
+            5: ["Long Run (4-6 miles)", "Long Run (4-6 miles)", "Long Run (4-6 miles)"],  # Saturday
+            6: ["Long Run (4-6 miles)", "Long Run (4-6 miles)", "Long Run (4-6 miles)"]   # Sunday
         }
     }
     
@@ -70,7 +70,18 @@ def generate_cardio_workout(day_of_week, intensity="moderate"):
         duration = random.randint(20, 30) if is_peloton else random.randint(10, 15)
     
     # Generate specific instructions based on the cardio type and intensity
-    if "Peloton" in cardio_type:
+    if "Long Run" in cardio_type:
+        # For weekends, always do a long run with stretching
+        # Randomly choose between distance-based or time-based run
+        if random.random() < 0.5:
+            # Distance-based run
+            miles = random.uniform(4.0, 6.0)
+            return f"{cardio_type}\n• 5-10 min warmup at easy pace\n• {miles:.1f} miles at a comfortable, conversational pace\n• 5-10 min cooldown\n• 10-15 minutes of post-run stretching focusing on:\n  - Hamstrings\n  - Quadriceps\n  - Hip flexors\n  - Calves\n  - Lower back"
+        else:
+            # Time-based run
+            duration = random.randint(45, 60)
+            return f"{cardio_type}\n• 5-10 min warmup at easy pace\n• {duration} minutes at a comfortable, conversational pace\n• 5-10 min cooldown\n• 10-15 minutes of post-run stretching focusing on:\n  - Hamstrings\n  - Quadriceps\n  - Hip flexors\n  - Calves\n  - Lower back"
+    elif "Peloton" in cardio_type:
         # Round to nearest 5 for Peloton durations (classes are 20, 30, 45 min)
         peloton_duration = round(duration / 5) * 5
         # Ensure duration is between 20 and 45 minutes
@@ -262,6 +273,14 @@ def generate_strength_workout(day_of_week, intensity="moderate"):
     # Override focus if in recovery mode
     if intensity == "recovery":
         focus_by_day = {day: "Recovery & Mobility" for day in range(7)}
+    
+    # Randomly decide between strength training and Pilates (30% chance for Pilates)
+    if random.random() < 0.3:
+        pilates_duration = random.choice([10, 15, 20])
+        return {
+            "focus": "Pilates",
+            "workout": f"PILATES SESSION ({pilates_duration} minutes):\n• Focus on core engagement and controlled movements\n• Include exercises for:\n  - Core strength\n  - Hip stability\n  - Spinal mobility\n  - Postural alignment\n• End with 5 minutes of deep breathing and relaxation"
+        }
     
     # Exercise database by muscle group
     # Each entry includes: [name, equipment, format (reps or time), details by intensity]
