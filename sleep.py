@@ -10,12 +10,13 @@ from utils.print import print_notification
 import datetime
 import random
 
-def generate_combined_message():
+def generate_morning_update():
     try:
+        print(f"\n[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Attempting to generate morning update...")
         # Get sleep data
         sleep_data = fetch_sleep_data()
         
-        # Create the combined message
+        # Create the morning message
         message = "🌞 YOUR DAILY MORNING UPDATE 🌞\n\n"
         
         # Add date and time
@@ -60,12 +61,6 @@ def generate_combined_message():
         message += "• Plan your day's schedule (work blocks, breaks, exercise) ⏱️\n"
         message += "• Set 1-3 main goals for the day 🎯\n\n"
         
-        # Add workout data
-        workout_message = generate_daily_workout()
-        if workout_message:
-            message += workout_message
-            message += "\n\n"
-        
         # Add affirmation and quote
         affirmation, quote = get_affirmation_and_quote()
         message += f"{affirmation}\n\n{quote}\n\n"
@@ -85,18 +80,42 @@ def generate_combined_message():
         return message
         
     except Exception as e:
-        print(f"Error generating combined message: {e}")
-        print_notification("Could not generate daily update. Please try again later.")
+        print(f"Error generating morning update: {e}")
+        print_notification("Could not generate morning update. Please try again later.")
         return None
 
-# Schedule the combined message
-# schedule.every().day.at("09:15").do(generate_combined_message)
+def generate_workout_message():
+    try:
+        print(f"\n[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Attempting to generate workout message...")
+        message = "💪 YOUR DAILY WORKOUT 💪\n\n"
+        workout_message = generate_daily_workout()
+        if workout_message:
+            message += workout_message
+            message += "\n\n"
+            message += "Remember to stay hydrated and listen to your body! You've got this! 💪"
 
-# Test the function immediately
-print("Testing combined message generator...")
-generate_combined_message()
+            print_notification(message)
+            return message
+        else:
+            print_notification("No workout generated for today.")
+            return None
+    except Exception as e:
+        print(f"Error generating workout message: {e}")
+        print_notification("Could not generate workout message. Please try again later.")
+        return None
 
-print("Message generator system running. Press CTRL+C to exit.")
+# Schedule the messages
+schedule.every().day.at("07:15").do(generate_morning_update)
+schedule.every().day.at("09:15").do(generate_workout_message)
+
+# Generate messages immediately when script starts
+print("\nGenerating initial messages...")
+print(f"Current time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+generate_morning_update()
+generate_workout_message()
+
+print("\nMessage generator system running. Press CTRL+C to exit.")
+print(f"Current time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 # Run the scheduler
 while True:

@@ -23,17 +23,17 @@ def print_notification(message):
             
         # Send the SMS
         sanitized_message = sanitize_for_texting(message)
-        # response = requests.post('https://textbelt.com/text', {
-        #     'phone': OLIVIA_PHONE_NUMBER,
-        #     'message': sanitized_message,
-        #     'key': os.getenv('TEXTBELT_KEY'), 
-        # })
+        response = requests.post('https://textbelt.com/text', {
+            'phone': OLIVIA_PHONE_NUMBER,
+            'message': sanitized_message,
+            'key': os.getenv('TEXTBELT_KEY'), 
+        })
         
-        # result = response.json()
-        # if result['success']:
-        #     print(f"SMS sent successfully! Remaining: {result['quotaRemaining']}")
-        # else:
-        #     print(f"SMS failed: {result['error']}")
+        result = response.json()
+        if result['success']:
+            print(f"SMS sent successfully! Remaining: {result['quotaRemaining']}")
+        else:
+            print(f"SMS failed: {result['error']}")
     except Exception as e:
         print(f"Error sending SMS: {e}")
 

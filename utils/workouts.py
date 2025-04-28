@@ -225,11 +225,11 @@ def generate_daily_workout():
         ]
         
         message += f"\n\n{random.choice(motivational_closers)}"
-        print(message)
         return message
     except Exception as e:
         print(f"Error generating workout: {e}")
         print_notification("Could not generate today's workout. Please try again later.")
+        return None
 
 def downgrade_intensity(current_intensity):
     """Downgrade workout intensity by one level"""
