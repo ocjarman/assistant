@@ -111,8 +111,8 @@ schedule.every().day.at("09:15").do(generate_workout_message)
 # Generate messages immediately when script starts
 print("\nGenerating initial messages...")
 print(f"Current time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-generate_morning_update()
-generate_workout_message()
+# generate_morning_update()
+# generate_workout_message()
 
 print("\nMessage generator system running. Press CTRL+C to exit.")
 print(f"Current time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

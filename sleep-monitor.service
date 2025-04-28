@@ -1,0 +1,14 @@
+[Unit]
+Description=Sleep Monitor Service
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/assistant
+ExecStart=/home/pi/assistant/run_sleep_monitor.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target 
