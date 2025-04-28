@@ -1,7 +1,7 @@
 import datetime
 import random
 
-from utils.print import print_notification
+from .print import print_notification
 from utils.oura import get_oura_readiness
 from utils.sleepUtils import fetch_sleep_data
 

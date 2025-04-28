@@ -6,6 +6,7 @@ from utils.quotes import get_affirmation_and_quote
 from utils.quotes import morning_reminders
 from utils.workouts import generate_daily_workout
 from utils.oura import get_oura_readiness
+from utils.print import print_notification
 import datetime
 import random
 
