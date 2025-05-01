@@ -105,7 +105,7 @@ def generate_workout_message():
         return None
 
 # Schedule the messages
-schedule.every().day.at("07:15").do(generate_morning_update)
+schedule.every().day.at("09:15").do(generate_morning_update)
 schedule.every().day.at("09:15").do(generate_workout_message)
 
 # Generate messages immediately when script starts
